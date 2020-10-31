@@ -12,7 +12,7 @@ if test "$USER" == 'root'; then
   exit 1
 fi
 
-ME_URL="https://github.com/nrwiersma/installer/archive/init.zip"
+ME_URL="https://github.com/glasslabs/installer/archive/main.zip"
 ME_PATH="/tmp/installer"
 TEMP_ME_FILE="/tmp/installer.zip"
 ARCH="$(uname -m | cut -c1-5)"
