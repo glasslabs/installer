@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Looking Glass
+Description=Mirror Splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/looking-glass
+ScriptFile=/usr/share/plymouth/themes/looking-glass/looking-glass.script

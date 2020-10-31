@@ -1,0 +1,169 @@
+#!/bin/bash
+set -e
+
+function step() { tput bold && tput setaf 5 && echo "$@" && tput sgr0; }
+function info() { tput bold && tput setaf 4 && echo "$@" && tput sgr0; }
+function warn() { tput bold && tput setaf 3 && echo "$@" && tput sgr0; }
+function success() { tput bold && tput setaf 2 && echo "$@" && tput sgr0; }
+function err() { tput bold && tput setaf 1 && echo "$@" && tput sgr0; }
+
+if test "$USER" == 'root'; then
+  err "Cowardly refusing to continue. Do not run as root."
+  exit 1
+fi
+
+ME_URL="https://github.com/nrwiersma/installer/archive/init.zip"
+ME_PATH="/tmp/installer"
+TEMP_ME_FILE="/tmp/installer.zip"
+ARCH="$(uname -m | cut -c1-5)"
+RELEASES_URL="https://github.com/glasslabs/looking-glass/releases"
+TEMP_FILE="/tmp/looking-glass.tar.gz"
+USER="glass"
+USER_HOME="/home/$USER"
+
+check_version() {
+  if test "$ARCH" != "armv6" && test "$ARCH" == "armv7"; then
+    err "ERROR: Unsupported architecture '$ARCH'"
+    exit 1
+  fi
+  info "Arch Version supported"
+}
+
+extract_me() {
+  info "Extracting installer dependencies"
+
+  rm -rf "$ME_PATH" "$TEMP_ME_FILE"
+  curl -sL -o "$TEMP_ME_FILE" "$ME_URL"
+  mkdir -p "$ME_PATH"
+  unzip -qq "$TEMP_ME_FILE" -d "$ME_PATH"
+  mv "$ME_PATH"/*/* "$ME_PATH"
+}
+
+## Install Dependencies
+
+install_deps() {
+  info "Installing dependencies"
+
+  sudo apt-get update -q
+  sudo apt-get install -q -y --no-install-recommends xserver-xorg-video-all xserver-xorg-input-all xserver-xorg-core \
+    xinit x11-xserver-utils git chromium-browser unclutter
+}
+
+## User functions
+
+create_user() {
+  info "Setting up user"
+
+  if id -u "$USER" >/dev/null 2>&1; then
+    warn "User already exists. Skipping."
+    return
+  fi
+
+  step "Creating user"
+
+  sudo useradd -m -s "$(command -v bash)" -G adm,dialout,cdrom,audio,video,plugdev,games,users,input,netdev,spi,i2c,gpio $USER
+
+  step "Creating autologin for user"
+
+  sudo systemctl set-default multi-user.target
+  sudo ln -fs /lib/systemd/system/getty@.service /etc/systemd/system/getty.target.wants/getty@tty1.service
+  sudo cat >/etc/systemd/system/getty@tty1.service.d/autologin.conf <<EOF
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin $USER --noclear %I \$TERM
+EOF
+}
+
+setup_user() {
+  info "Setting up user"
+
+  sudo -u "$USER" -g "$USER" cp -a "$ME_PATH/home/." "$USER_HOME/"
+
+  if test -d "$USER_HOME/looking-glass"; then
+    warn "Config directory already exits. Skipping."
+    return
+  fi
+
+  step "Creating default config in $USER_HOME/looking-glass"
+
+  sudo -u "$USER" -g "$USER" mkdir -p "$USER_HOME/looking-glass/modules"
+  sudo -u "$USER" -g "$USER" touch "$USER_HOME/looking-glass/secrets.yaml"
+  sudo -u "$USER" -g "$USER" cp "$ME_PATH/config.yaml" "$USER_HOME/looking-glass/"
+
+}
+
+## Install Splashscreen
+
+install_splashscreen() {
+  info "Setting splash screen"
+
+  if ! command -v plymouth &> /dev/null; then
+    warn "Plymouth does not exist. Skipping."
+    return
+  fi
+
+  theme_dir="/usr/share/plymouth/themes"
+  if test ! -d "$theme_dir"; then
+    warn "Plymouth theme directory does not exist. Skipping."
+    return
+  fi
+
+  if test ! -d "$theme_dir/looking-glass"; then
+    sudo mkdir "$theme_dir/looking-glass"
+  fi
+
+  sudo cp -a "$ME_PATH/splashscreen/." "$theme_dir/looking-glass/"
+
+  if ! command -v plymouth-set-default-theme &> /dev/null; then
+    warn "Cannot set plymount theme."
+    return
+  fi
+
+  sudo plymouth-set-default-theme -R looking-glass
+}
+
+## Download and install looking glass
+
+latest_version() {
+  curl -sL -o /dev/null -w %{url_effective} "$RELEASES_URL/latest" |
+    rev |
+    cut -f1 -d'/' |
+    rev
+}
+
+install_looking_glass() {
+  info "Installing Looking Glass"
+
+  test -z "$VERSION" && VERSION="$(latest_version)"
+  if test -z "$VERSION"; then
+    err "ERROR: Could not determine latest version"
+    exit 1
+  fi
+
+  if test -z "$ARCH"; then
+    err "ERROR: Could not determine arch to use"
+    exit 1
+  fi
+
+  rm -f "$TEMP_FILE"
+  curl -sL -o "$TEMP_FILE" "$RELEASES_URL/download/$VERSION/looking-glass_${VERSION}_linux_$ARCH.tar.gz"
+  sudo tar -zxf "$TEMP_FILE" -C /usr/local/bin/ glass
+}
+
+## script main
+
+check_version
+
+install_deps
+extract_me
+
+create_user
+setup_user
+
+install_splashscreen
+
+install_looking_glass
+
+success "Config: $USER_HOME/looking-glass"
+success "Modules: $USER_HOME/looking-glass/modules"
+success "Install Completed. Please Reboot."
