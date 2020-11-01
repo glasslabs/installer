@@ -22,7 +22,7 @@ USER="glass"
 USER_HOME="/home/$USER"
 
 check_version() {
-  if test "$ARCH" != "armv6" && test "$ARCH" == "armv7"; then
+  if test "$ARCH" != "armv6" && test "$ARCH" != "armv7"; then
     err "ERROR: Unsupported architecture '$ARCH'"
     exit 1
   fi
