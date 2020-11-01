@@ -96,17 +96,19 @@ setup_user() {
 ## Install Splashscreen
 
 install_splashscreen() {
-  info "Setting splash screen"
+  info "Setting splashscreen"
 
   if ! command -v plymouth &> /dev/null; then
     step "Installing plymouth"
 
     sudo apt-get -q -y install plymouth plymouth-themes
+  fi
 
-    cmdline=/boot/cmdline.txt
-    if ! grep -q "splash" $cmdline ; then
-        sed -i $cmdline -e "s/$/ quiet splash plymouth.ignore-serial-consoles/"
-    fi
+  cmdline=/boot/cmdline.txt
+  if ! grep -q "splash" $cmdline ; then
+      step "Enabling splashscreen"
+
+      sed -i $cmdline -e "s/$/ quiet splash plymouth.ignore-serial-consoles/"
   fi
 
   theme_dir="/usr/share/plymouth/themes"
