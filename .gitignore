@@ -1,1 +1,7 @@
+# Mac OS X files
+.DS_Store
 
+# IDE commons
+.idea
+.vscode/*
+.history/
