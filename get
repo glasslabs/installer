@@ -108,7 +108,7 @@ install_splashscreen() {
   if ! grep -q "splash" $cmdline ; then
       step "Enabling splashscreen"
 
-      sed -i $cmdline -e "s/$/ quiet splash plymouth.ignore-serial-consoles/"
+      sudo sed -i $cmdline -e "s/$/ quiet splash plymouth.ignore-serial-consoles/"
   fi
 
   theme_dir="/usr/share/plymouth/themes"
