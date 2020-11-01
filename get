@@ -22,7 +22,7 @@ cat << "EOF"
                                     \|_________|\|_________|
 
 
-Thanks for installing us - github.com/glasslabs/looking-glass
+Thanks for installing looking glass - github.com/glasslabs/looking-glass
 EOF
 
 function step() { tput bold && tput setaf 5 && echo "$@" && tput sgr0; }
