@@ -21,6 +21,8 @@ cat << "EOF"
     \|_______| \|_______| \|__|\|__||\_________\|\_________\
                                     \|_________|\|_________|
 
+
+Thanks for installing us - github.com/glasslabs/looking-glass
 EOF
 
 function step() { tput bold && tput setaf 5 && echo "$@" && tput sgr0; }
