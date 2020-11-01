@@ -22,8 +22,9 @@ USER="glass"
 USER_HOME="/home/$USER"
 
 check_version() {
-  if test "$ARCH" != "armv6" && test "$ARCH" == "armv7"; then
-    err "ERROR: Unsupported architecture '$ARCH'"
+  if test "$ARCH" != "armv6" && test "$ARCH" != "armv7"; then
+    actual = $(uname -m)
+    err "ERROR: Unsupported architecture '$actual' for installer. Please install manually."
     exit 1
   fi
   info "Arch Version supported"
@@ -67,7 +68,7 @@ create_user() {
 
   sudo systemctl set-default multi-user.target
   sudo ln -fs /lib/systemd/system/getty@.service /etc/systemd/system/getty.target.wants/getty@tty1.service
-  sudo cat >/etc/systemd/system/getty@tty1.service.d/autologin.conf <<EOF
+  sudo cat <<EOF | sudo tee -a /etc/systemd/system/getty@tty1.service.d/autologin.conf
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty --autologin $USER --noclear %I \$TERM
