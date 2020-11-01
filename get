@@ -159,6 +159,11 @@ install_looking_glass() {
   sudo tar -zxf "$TEMP_FILE" -C /usr/local/bin/ glass
 }
 
+## Handle reboot
+do_reboot () {
+  info 'Reboot? (y/N)' && read x && [[ "$x" == "y" ]] && /sbin/reboot;
+}
+
 ## script main
 
 check_version
@@ -175,4 +180,6 @@ install_looking_glass
 
 success "Config: $USER_HOME/looking-glass"
 success "Modules: $USER_HOME/looking-glass/modules"
-success "Install Completed. Please Reboot."
+success "Install Completed."
+
+do_reboot
