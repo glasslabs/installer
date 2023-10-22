@@ -112,6 +112,7 @@ setup_user() {
   step "Creating default config in $USER_HOME/looking-glass"
 
   sudo -u "$USER" -g "$USER" mkdir -p "$USER_HOME/looking-glass/modules"
+  sudo -u "$USER" -g "$USER" mkdir -p "$USER_HOME/looking-glass/assets"
   sudo -u "$USER" -g "$USER" touch "$USER_HOME/looking-glass/secrets.yaml"
   sudo -u "$USER" -g "$USER" cp "$ME_PATH/config.yaml" "$USER_HOME/looking-glass/"
 

@@ -3,6 +3,5 @@ ui:
   height: {{ .Env.SCREEN_HEIGHT }}
 modules:
   - name: simple-clock
-    path: github.com/glasslabs/clock
-    version: latest
+    url: https://github.com/glasslabs/clock/releases/download/v1.0.0/clock.wasm
     position: top:right
